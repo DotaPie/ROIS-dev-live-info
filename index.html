@@ -26,7 +26,7 @@
   <script src="https://js.pusher.com/7.2/pusher.min.js"></script>
 </head>
 <body>
-  <div id="info">Connecting…</div>
+  <div id="info">Verifying…</div>
 
   <script>
     /*
@@ -46,13 +46,25 @@
       forceTLS: true
     });
 
-    // 5) Subscribe to your channel and bind the 'update' event
+    // 5) Subscribe to your channel
     const channel = pusher.subscribe(CHANNEL_NAME);
+
+    // 6) Verification timeout: display 'OK' if no update arrives in 5s
+    let updateReceived = false;
+    const verifyTimeout = setTimeout(() => {
+      if (!updateReceived) {
+        document.getElementById('info').textContent = 'OK';
+      }
+    }, 5000);
+
+    // 7) Bind the 'update' event: clear timeout and show data
     channel.bind('update', (data) => {
+      updateReceived = true;
+      clearTimeout(verifyTimeout);
       document.getElementById('info').textContent = data.text;
     });
 
-    // 6) Handle connection errors
+    // 8) Handle connection errors
     pusher.connection.bind('error', (err) => {
       console.error('Pusher error', err);
       document.getElementById('info').textContent = '(disconnected)';
