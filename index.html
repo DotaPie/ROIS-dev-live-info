@@ -2,10 +2,6 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <!-- Prevent any caching -->
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-  <meta http-equiv="Pragma" content="no-cache" />
-  <meta http-equiv="Expires" content="0" />
   <title>Live Info Board</title>
   <style>
     html, body {
@@ -14,46 +10,53 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      font-family: sans-serif;
       background: #f7f7f7;
     }
     #info {
       font-size: clamp(2rem, 5vw, 8rem);
-      text-align: center;
-      line-height: 1.2;
       padding: 1rem 2rem;
+      background: white;
       border-radius: 1rem;
-      background: #ffffff;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      text-align: center;
     }
   </style>
+  <!-- 1) Include the Pusher client library -->
+  <script src="https://js.pusher.com/7.2/pusher.min.js"></script>
 </head>
 <body>
-  <div id="info">Loading…</div>
+  <div id="info">Connecting…</div>
 
   <script>
     /*
-      Replace the RAW_URL value with the **raw** link of your public GitHub Gist (or any text file that supports CORS).
-      The script polls that URL every INTERVAL_MS milliseconds and updates the page automatically.
+      2) Replace with your Pusher app credentials:
+         - App Key    -> PUSHER_APP_KEY
+         - Cluster    -> PUSHER_CLUSTER (e.g., 'eu')
+      3) Use your chosen channel name below; it must match what you use in your API calls.
+         Here we use 'live'.
     */
+    const PUSHER_APP_KEY = 'd4e9c8ee117429f97f19';
+    const PUSHER_CLUSTER = 'eu';
+    const CHANNEL_NAME   = 'ROIS-dev-live-info';
 
-    const RAW_URL = 'https://rawcdn.githack.com/DotaPie/ROIS-dev-live-info/main/info.txt';
-    const INTERVAL_MS = 1000; // 15 s. Reduce for faster updates (e.g. 5000 for 5 s).
+    // 4) Initialize Pusher
+    const pusher = new Pusher(PUSHER_APP_KEY, {
+      cluster: PUSHER_CLUSTER,
+      forceTLS: true
+    });
 
-    async function fetchInfo() {
-    try {
-      // fresh, unique URL each time ➜ CDN can't reuse the old object
-      const res = await fetch(RAW_URL + '?t=' + Date.now(), { cache: 'no-store' });
-      if (!res.ok) throw new Error(res.status);
-      const text = await res.text();
-      document.getElementById('info').textContent = text.trim() || '(empty)';
-    } catch (err) {
-      console.error('Fetch error', err);
-    }
-  }
+    // 5) Subscribe to your channel and bind the 'update' event
+    const channel = pusher.subscribe(CHANNEL_NAME);
+    channel.bind('update', (data) => {
+      document.getElementById('info').textContent = data.text;
+    });
 
-    fetchInfo();               // initial load
-    setInterval(fetchInfo, INTERVAL_MS); // auto‑refresh
+    // 6) Handle connection errors
+    pusher.connection.bind('error', (err) => {
+      console.error('Pusher error', err);
+      document.getElementById('info').textContent = '(disconnected)';
+    });
   </script>
 </body>
 </html>
