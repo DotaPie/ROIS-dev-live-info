@@ -44,7 +44,7 @@
       align-items: center;
       justify-content: center;
       font-size: clamp(2rem, 5vw, 8rem);
-      padding: 2rem 3rem;
+      padding: 2.5rem 6rem;
       max-width: 90%;
       background: var(--card-bg);
       border: 2px solid var(--accent-color);
@@ -53,7 +53,10 @@
     }
 
     #info span {
-      white-space: pre-line;
+      /* FORCE SINGLE LINE */
+      white-space: pre;
+
+      display: inline-block;
       text-align: center;
       line-height: 1.2;
       letter-spacing: 0.02em;
@@ -112,16 +115,13 @@
 
       // 3 cases: maintenance, OK, or other
       if (up.includes('MAINTENANCE')) {
-        // start continuous red
         info.classList.add('maintenance');
         info.classList.remove('updated');
       }
       else if (up === 'OK') {
-        // immediately stop any glow—no flash
         info.classList.remove('maintenance', 'updated');
       }
       else {
-        // blue one-shot
         info.classList.add('updated');
         info.classList.remove('maintenance');
         setTimeout(() => {
