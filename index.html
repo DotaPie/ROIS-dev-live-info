@@ -3,75 +3,129 @@
 <head>
   <meta charset="UTF-8" />
   <title>Live Info Board</title>
+
+  <!-- Inter font -->
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap"
+    rel="stylesheet"
+  />
+
   <style>
+    :root {
+      --bg-color:     #121212;
+      --card-bg:      #1e1e1e;
+      --text-color:   #e0e0e0;
+      --accent-color: #3f51b5;
+      --error-color:  #f44336;
+      --shadow-color: rgba(0,0,0,0.5);
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      transition: background-color 0.3s, color 0.3s;
+    }
+
     html, body {
       height: 100%;
       margin: 0;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-family: sans-serif;
-      background: #f7f7f7;
+      background: var(--bg-color);
+      color: var(--text-color);
+      font-family: 'Inter', sans-serif;
     }
+
     #info {
+      display: flex;
+      align-items: center;
+      justify-content: center;
       font-size: clamp(2rem, 5vw, 8rem);
-      padding: 1rem 2rem;
-      background: white;
+      padding: 2rem 3rem;
+      max-width: 90%;
+      background: var(--card-bg);
+      border: 2px solid var(--accent-color);
       border-radius: 1rem;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-      text-align: center;
-      /* allow newline characters in textContent to render as line breaks */
+      box-shadow: 0 8px 20px var(--shadow-color);
+    }
+
+    #info span {
       white-space: pre-line;
+      text-align: center;
+      line-height: 1.2;
+    }
+
+    /* one-time blue flash */
+    #info.updated {
+      animation: glow 1s ease-in-out;
+    }
+    @keyframes glow {
+      0%   { box-shadow: 0 0 10px var(--accent-color); }
+      50%  { box-shadow: 0 0 30px var(--accent-color); }
+      100% { box-shadow: 0 0 10px var(--accent-color); }
+    }
+
+    /* infinite red pulse */
+    #info.maintenance {
+      animation: maintenanceGlow 2s ease-in-out infinite;
+      border-color: var(--error-color);
+    }
+    @keyframes maintenanceGlow {
+      0%   { box-shadow: 0 0 10px var(--error-color); }
+      50%  { box-shadow: 0 0 30px var(--error-color); }
+      100% { box-shadow: 0 0 10px var(--error-color); }
     }
   </style>
-  <!-- 1) Include the Pusher client library -->
-  <script src="https://js.pusher.com/7.2/pusher.min.js"></script>
 </head>
 <body>
-  <div id="info">Verifying …</div>
+  <div id="info">
+    <span id="info-text">Verifying</span>
+  </div>
 
+  <script src="https://js.pusher.com/7.2/pusher.min.js"></script>
   <script>
-    /*
-      2) Replace with your Pusher app credentials:
-         - App Key    -> YOUR_APP_KEY
-         - Cluster    -> YOUR_CLUSTER (e.g., 'eu')
-      3) Use your chosen channel name below; it must match what you use in your API calls.
-         Here we use 'ROIS-dev-live-info'.
-    */
-    const PUSHER_APP_KEY = 'd4e9c8ee117429f97f19';
-    const PUSHER_CLUSTER = 'eu';
-    const CHANNEL_NAME   = 'ROIS-dev-live-info';
-
-    // 4) Initialize Pusher
-    const pusher = new Pusher(PUSHER_APP_KEY, {
-      cluster: PUSHER_CLUSTER,
+    const p = new Pusher('d4e9c8ee117429f97f19', {
+      cluster: 'eu',
       forceTLS: true
     });
+    const channel = p.subscribe('ROIS-dev-live-info');
 
-    // 5) Subscribe to your channel
-    const channel = pusher.subscribe(CHANNEL_NAME);
+    const info = document.getElementById('info');
+    const txt  = document.getElementById('info-text');
 
-    // 6) Verification timeout: display 'OK' if no update arrives in 5s
-    let updateReceived = false;
-    const verifyTimeout = setTimeout(() => {
-      if (!updateReceived) {
-        document.getElementById('info').textContent = 'OK';
-      }
+    let seen = false;
+    const to = setTimeout(() => {
+      if (!seen) txt.textContent = 'OK';
     }, 2000);
 
-    // 7) Bind the 'update' event: clear timeout and show data
-    channel.bind('update', (data) => {
-      updateReceived = true;
-      clearTimeout(verifyTimeout);
-      // display multi-line text correctly
-      document.getElementById('info').textContent = data.text;
+    channel.bind('update', ({ text }) => {
+      seen = true;
+      clearTimeout(to);
+
+      const up = text.toUpperCase().trim();
+      txt.textContent = text;
+
+      // 3 cases: maintenance, OK, or other
+      if (up.includes('MAINTENANCE')) {
+        // start continuous red
+        info.classList.add('maintenance');
+        info.classList.remove('updated');
+      }
+      else if (up === 'OK') {
+        // immediately stop any glowтno flash
+        info.classList.remove('maintenance', 'updated');
+      }
+      else {
+        // blue one-shot
+        info.classList.add('updated');
+        info.classList.remove('maintenance');
+        setTimeout(() => {
+          info.classList.remove('updated');
+        }, 1000);
+      }
     });
 
-    // 8) Handle connection errors
-    pusher.connection.bind('error', (err) => {
-      console.error('Pusher error', err);
-      document.getElementById('info').textContent = 'DISCONNECTED';
-    });
+    p.connection.bind('error', err => console.error('Pusher error', err));
   </script>
 </body>
 </html>
