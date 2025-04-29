@@ -37,7 +37,7 @@
       The script polls that URL every INTERVAL_MS milliseconds and updates the page automatically.
     */
 
-    const RAW_URL = 'https://pastebin.com/raw/fmRqCknP'; // ← put your raw link here
+    const RAW_URL = 'https://api.allorigins.win/raw?url=' + encodeURIComponent('https://pastebin.com/raw/fmRqCknP');
     const INTERVAL_MS = 1000; // 15 s. Reduce for faster updates (e.g. 5000 for 5 s).
 
     async function fetchInfo() {
