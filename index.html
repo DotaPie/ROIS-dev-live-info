@@ -4,7 +4,6 @@
   <meta charset="UTF-8" />
   <title>Live Info Board</title>
   <style>
-    /* Dark mode styling */
     html, body {
       height: 100%;
       margin: 0;
@@ -12,44 +11,28 @@
       align-items: center;
       justify-content: center;
       font-family: sans-serif;
-      background: #121212;
-      color: #e0e0e0;
+      background: #f7f7f7;
     }
     #info {
       font-size: clamp(2rem, 5vw, 8rem);
       padding: 1rem 2rem;
-      background: #1e1e1e;
-      color: #e0e0e0;
+      background: white;
       border-radius: 1rem;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
       text-align: center;
-    }
-    /* Optional toggle button styling */
-    #toggle {
-      position: absolute;
-      top: 1rem;
-      right: 1rem;
-      background: #2c2c2c;
-      border: none;
-      color: #e0e0e0;
-      padding: 0.5rem 1rem;
-      border-radius: 0.5rem;
-      cursor: pointer;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.5);
     }
   </style>
   <!-- 1) Include the Pusher client library -->
   <script src="https://js.pusher.com/7.2/pusher.min.js"></script>
 </head>
 <body>
-  <button id="toggle">Toggle Theme</button>
   <div id="info">Connecting…</div>
 
   <script>
     /*
       2) Replace with your Pusher app credentials:
-         - App Key    -> PUSHER_APP_KEY
-         - Cluster    -> PUSHER_CLUSTER (e.g., 'eu')
+         - App Key    -> YOUR_APP_KEY
+         - Cluster    -> YOUR_CLUSTER (e.g., 'eu')
       3) Use your chosen channel name below; it must match what you use in your API calls.
          Here we use 'ROIS-dev-live-info'.
     */
@@ -73,18 +56,6 @@
     pusher.connection.bind('error', (err) => {
       console.error('Pusher error', err);
       document.getElementById('info').textContent = '(disconnected)';
-    });
-
-    // 7) Theme toggle logic
-    const toggle = document.getElementById('toggle');
-    toggle.addEventListener('click', () => {
-      document.body.classList.toggle('light-mode');
-      const isLight = document.body.classList.contains('light-mode');
-      document.documentElement.style.background = isLight ? '#f7f7f7' : '#121212';
-      document.documentElement.style.color = isLight ? '#1e1e1e' : '#e0e0e0';
-      document.getElementById('info').style.background = isLight ? '#ffffff' : '#1e1e1e';
-      document.getElementById('info').style.color = isLight ? '#1e1e1e' : '#e0e0e0';
-      toggle.textContent = isLight ? 'Dark Mode' : 'Light Mode';
     });
   </script>
 </body>
