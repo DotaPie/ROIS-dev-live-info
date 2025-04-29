@@ -41,15 +41,16 @@
     const INTERVAL_MS = 1000; // 15 s. Reduce for faster updates (e.g. 5000 for 5 s).
 
     async function fetchInfo() {
-      try {
-        const res = await fetch(RAW_URL, { cache: 'no-cache' });
-        if (!res.ok) throw new Error(res.status);
-        const text = await res.text();
-        document.getElementById('info').textContent = text.trim() || '(empty)';
-      } catch (err) {
-        console.error('Fetch error', err);
-      }
+    try {
+      // fresh, unique URL each time ➜ CDN can't reuse the old object
+      const res = await fetch(RAW_URL + '?t=' + Date.now(), { cache: 'no-store' });
+      if (!res.ok) throw new Error(res.status);
+      const text = await res.text();
+      document.getElementById('info').textContent = text.trim() || '(empty)';
+    } catch (err) {
+      console.error('Fetch error', err);
     }
+  }
 
     fetchInfo();               // initial load
     setInterval(fetchInfo, INTERVAL_MS); // auto‑refresh
