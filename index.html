@@ -20,6 +20,8 @@
       border-radius: 1rem;
       box-shadow: 0 4px 10px rgba(0,0,0,0.1);
       text-align: center;
+      /* allow newline characters in textContent to render as line breaks */
+      white-space: pre-line;
     }
   </style>
   <!-- 1) Include the Pusher client library -->
@@ -55,19 +57,20 @@
       if (!updateReceived) {
         document.getElementById('info').textContent = 'OK';
       }
-    }, 5000);
+    }, 2000);
 
     // 7) Bind the 'update' event: clear timeout and show data
     channel.bind('update', (data) => {
       updateReceived = true;
       clearTimeout(verifyTimeout);
+      // display multi-line text correctly
       document.getElementById('info').textContent = data.text;
     });
 
     // 8) Handle connection errors
     pusher.connection.bind('error', (err) => {
       console.error('Pusher error', err);
-      document.getElementById('info').textContent = '(disconnected)';
+      document.getElementById('info').textContent = 'DISCONNECTED';
     });
   </script>
 </body>
