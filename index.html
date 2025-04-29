@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <!-- Prevent any caching -->
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+  <title>Live Info Board</title>
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: #f7f7f7;
+    }
+    #info {
+      font-size: clamp(2rem, 5vw, 8rem);
+      text-align: center;
+      line-height: 1.2;
+      padding: 1rem 2rem;
+      border-radius: 1rem;
+      background: #ffffff;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+  </style>
+</head>
+<body>
+  <div id="info">Loading…</div>
+
+  <script>
+    /*
+      Replace the RAW_URL value with the **raw** link of your public GitHub Gist (or any text file that supports CORS).
+      The script polls that URL every INTERVAL_MS milliseconds and updates the page automatically.
+    */
+
+    const RAW_URL = 'https://gist.githubusercontent.com/DotaPie/f3f758984b538f01b0c67d549abf4b2b/raw/6f4d793ac0fc795dd0e600ef6ec1f6a8b7dc9e88/info.txt'; // ← put your raw link here
+    const INTERVAL_MS = 15000; // 15 s. Reduce for faster updates (e.g. 5000 for 5 s).
+
+    async function fetchInfo() {
+      try {
+        const res = await fetch(RAW_URL + '?t=' + Date.now()); // timestamp busts browser cache
+        if (!res.ok) throw new Error(res.status);
+        const text = await res.text();
+        document.getElementById('info').textContent = text.trim() || '(empty)';
+      } catch (err) {
+        console.error('Fetch error', err);
+      }
+    }
+
+    fetchInfo();               // initial load
+    setInterval(fetchInfo, INTERVAL_MS); // auto‑refresh
+  </script>
+</body>
+</html>
